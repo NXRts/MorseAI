@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Keyboard, Info, RotateCcw, Volume2, Settings, Zap } from 'lucide-react';
+import { Send, Keyboard, Info, RotateCcw, Volume2, Settings, Zap, X, Sliders } from 'lucide-react';
 import { textToMorse, morseToText } from '../utils/morse-logic';
 import { useMorseAudio } from '../hooks/use-morse-audio';
 import { useMorseInput } from '../hooks/use-morse-input';
@@ -16,7 +16,12 @@ interface DashboardProps {
 const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
   const [inputText, setInputText] = useState('');
   const [morseInput, setMorseInput] = useState('');
-  const { playMorse, stopAudio, isPlaying, activeElement, startManualTone, stopManualTone } = useMorseAudio();
+  const { 
+    playMorse, stopAudio, isPlaying, activeElement, startManualTone, stopManualTone,
+    volume, setVolume, frequency, setFrequency, wpm, setWpm 
+  } = useMorseAudio();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const { currentMorse, decodedText, isPressed, clear: clearManual } = useMorseInput({
     onPress: startManualTone,
     onRelease: stopManualTone
@@ -66,14 +71,28 @@ const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3 text-gray-400 text-sm">
-             <Volume2 className="w-4 h-4" />
-             <div className="w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden relative">
-                <div className="absolute inset-0 bg-cyan-500/30 w-full" />
-                <div className="absolute inset-y-0 left-0 bg-cyan-500 w-3/4" />
+          <div className="flex items-center gap-3 text-gray-400 text-sm group relative">
+             <Volume2 className="w-4 h-4 group-hover:text-cyan-400 transition-colors" />
+             <div className="w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden relative cursor-pointer">
+                <div 
+                  className="absolute inset-y-0 left-0 bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-all duration-150" 
+                  style={{ width: `${volume * 100}%` }}
+                />
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="1" 
+                  step="0.01" 
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
              </div>
           </div>
-          <button className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-colors text-gray-400 hover:text-cyan-400">
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all hover:scale-105 active:scale-95 text-gray-400 hover:text-cyan-400 border border-white/5"
+          >
             <Settings className="w-5 h-5" />
           </button>
         </div>
@@ -232,6 +251,97 @@ const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
            </div>
         </div>
       </div>
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSettingsOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+            >
+              {/* Background Glow */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 blur-[60px] rounded-full" />
+              
+              <div className="flex items-center justify-between mb-8 cursor-default">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/5 rounded-xl border border-white/10">
+                    <Sliders className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white tracking-tight">Signal Parameters</h2>
+                </div>
+                <button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-8">
+                {/* WPM Setting */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
+                       Speed <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-500/20">WPM</span>
+                    </label>
+                    <span className="text-lg font-mono font-bold text-white">{wpm}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="5" 
+                    max="40" 
+                    value={wpm}
+                    onChange={(e) => setWpm(parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-gray-800 rounded-full appearance-none cursor-pointer accent-cyan-500"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-600 font-mono uppercase tracking-widest px-1">
+                    <span>Tactical (5)</span>
+                    <span>Expert (40)</span>
+                  </div>
+                </div>
+
+                {/* Pitch Setting */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
+                       Pitch <span className="text-[10px] bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/20">HZ</span>
+                    </label>
+                    <span className="text-lg font-mono font-bold text-white">{frequency}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="300" 
+                    max="1000" 
+                    step="10"
+                    value={frequency}
+                    onChange={(e) => setFrequency(parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-gray-800 rounded-full appearance-none cursor-pointer accent-purple-500"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-600 font-mono uppercase tracking-widest px-1">
+                    <span>Low (300)</span>
+                    <span>High (1000)</span>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setIsSettingsOpen(false)}
+                className="w-full mt-10 py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-white font-medium transition-all hover:border-cyan-500/30"
+              >
+                CLOSE PROTOCOL
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

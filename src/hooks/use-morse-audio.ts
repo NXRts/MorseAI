@@ -13,19 +13,21 @@ export const useMorseAudio = () => {
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
 
-  const dotDuration = 100; // ms
+  const [volume, setVolume] = useState(0.5);
+  const [frequency, setFrequency] = useState(600);
+  const [wpm, setWpm] = useState(12);
+
+  const dotDuration = 1200 / wpm; // ms based on standard WPM formula
   const dashDuration = dotDuration * 3;
   const elementSpace = dotDuration;
   const characterSpace = dotDuration * 3;
   const wordSpace = dotDuration * 7;
-  const frequency = 600;
 
   const initAudio = () => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       gainNodeRef.current = audioContextRef.current.createGain();
       gainNodeRef.current.connect(audioContextRef.current.destination);
-      gainNodeRef.current.gain.value = 0;
     }
     if (audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
@@ -46,9 +48,10 @@ export const useMorseAudio = () => {
       const startTime = ctx.currentTime;
       const endTime = startTime + duration / 1000;
 
+      gain.gain.cancelScheduledValues(startTime);
       gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(0.2, startTime + 0.005);
-      gain.gain.setValueAtTime(0.2, endTime - 0.005);
+      gain.gain.linearRampToValueAtTime(volume * 0.4, startTime + 0.005);
+      gain.gain.setValueAtTime(volume * 0.4, endTime - 0.005);
       gain.gain.linearRampToValueAtTime(0, endTime);
 
       osc.start(startTime);
@@ -121,7 +124,7 @@ export const useMorseAudio = () => {
     
     gain.gain.cancelScheduledValues(ctx.currentTime);
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.005);
+    gain.gain.linearRampToValueAtTime(volume * 0.4, ctx.currentTime + 0.005);
 
     osc.start();
     manualOscRef.current = osc;
@@ -146,5 +149,18 @@ export const useMorseAudio = () => {
     }, 10);
   };
 
-  return { playMorse, stopAudio, isPlaying, activeElement, startManualTone, stopManualTone };
+  return { 
+    playMorse, 
+    stopAudio, 
+    isPlaying, 
+    activeElement, 
+    startManualTone, 
+    stopManualTone,
+    volume,
+    setVolume,
+    frequency,
+    setFrequency,
+    wpm,
+    setWpm
+  };
 };
