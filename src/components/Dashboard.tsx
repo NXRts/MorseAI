@@ -30,6 +30,25 @@ const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
   const morseOutput = textToMorse(inputText);
   const textOutput = morseToText(morseInput);
 
+  useEffect(() => {
+    if (isSettingsOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isSettingsOpen]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsSettingsOpen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   const handlePlay = () => {
     if (activeMode === 'encode' && morseOutput) playMorse(morseOutput);
     if (activeMode === 'decode' && morseInput) playMorse(morseInput);
@@ -279,9 +298,10 @@ const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
                 </div>
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white"
+                  className="relative z-[110] p-3 hover:bg-white/10 rounded-full transition-colors text-gray-500 hover:text-white group"
+                  aria-label="Close Settings"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 </button>
               </div>
 
