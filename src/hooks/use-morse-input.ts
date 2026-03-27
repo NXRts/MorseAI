@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { REVERSE_MORSE_MAP } from '../utils/morse-logic';
 
-export const useMorseInput = () => {
+interface UseMorseInputOptions {
+  onPress?: () => void;
+  onRelease?: () => void;
+}
+
+export const useMorseInput = (options?: UseMorseInputOptions) => {
   const [currentMorse, setCurrentMorse] = useState('');
   const [decodedText, setDecodedText] = useState('');
   const [isPressed, setIsPressed] = useState(false);
@@ -17,13 +22,15 @@ export const useMorseInput = () => {
   const handlePress = useCallback(() => {
     if (isPressed) return;
     setIsPressed(true);
+    options?.onPress?.();
     pressStartTime.current = performance.now();
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  }, [isPressed]);
+  }, [isPressed, options]);
 
   const handleRelease = useCallback(() => {
     if (!isPressed || pressStartTime.current === null) return;
     
+    options?.onRelease?.();
     const duration = performance.now() - pressStartTime.current;
     const symbol = duration < dotThreshold ? '.' : '-';
     

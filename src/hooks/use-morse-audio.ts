@@ -105,5 +105,46 @@ export const useMorseAudio = () => {
     }
   };
 
-  return { playMorse, stopAudio, isPlaying, activeElement };
+  const manualOscRef = useRef<OscillatorNode | null>(null);
+
+  const startManualTone = () => {
+    initAudio();
+    const ctx = audioContextRef.current!;
+    const gain = gainNodeRef.current!;
+
+    if (manualOscRef.current) return;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+    osc.connect(gain);
+    
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.005);
+
+    osc.start();
+    manualOscRef.current = osc;
+  };
+
+  const stopManualTone = () => {
+    if (!manualOscRef.current || !audioContextRef.current) return;
+    const ctx = audioContextRef.current;
+    const gain = gainNodeRef.current!;
+    const osc = manualOscRef.current;
+
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.005);
+
+    setTimeout(() => {
+      osc.stop();
+      osc.disconnect();
+      if (manualOscRef.current === osc) {
+        manualOscRef.current = null;
+      }
+    }, 10);
+  };
+
+  return { playMorse, stopAudio, isPlaying, activeElement, startManualTone, stopManualTone };
 };

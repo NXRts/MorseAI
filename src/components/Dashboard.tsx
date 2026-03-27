@@ -16,8 +16,11 @@ interface DashboardProps {
 const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
   const [inputText, setInputText] = useState('');
   const [morseInput, setMorseInput] = useState('');
-  const { playMorse, stopAudio, isPlaying, activeElement } = useMorseAudio();
-  const { currentMorse, decodedText, isPressed, clear: clearManual } = useMorseInput();
+  const { playMorse, stopAudio, isPlaying, activeElement, startManualTone, stopManualTone } = useMorseAudio();
+  const { currentMorse, decodedText, isPressed, clear: clearManual } = useMorseInput({
+    onPress: startManualTone,
+    onRelease: stopManualTone
+  });
 
   const morseOutput = textToMorse(inputText);
   const textOutput = morseToText(morseInput);
