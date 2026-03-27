@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 export type MorseElement = {
   type: 'dot' | 'dash' | 'space' | 'word-space';
@@ -10,7 +10,6 @@ export const useMorseAudio = () => {
   const [activeElement, setActiveElement] = useState<MorseElement | null>(null);
   
   const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
 
   const [volume, setVolume] = useState(0.5);
@@ -25,7 +24,8 @@ export const useMorseAudio = () => {
 
   const initAudio = () => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioContextRef.current = new AudioCtx();
       gainNodeRef.current = audioContextRef.current.createGain();
       gainNodeRef.current.connect(audioContextRef.current.destination);
     }

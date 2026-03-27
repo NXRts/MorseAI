@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Keyboard, Info, RotateCcw, Volume2, Settings, Zap, X, Sliders } from 'lucide-react';
+import { Send, Keyboard, RotateCcw, Volume2, Settings, Zap, X, Sliders } from 'lucide-react';
 import { textToMorse, morseToText } from '../utils/morse-logic';
 import { useMorseAudio } from '../hooks/use-morse-audio';
 import { useMorseInput } from '../hooks/use-morse-input';
@@ -17,7 +17,7 @@ const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
   const [inputText, setInputText] = useState('');
   const [morseInput, setMorseInput] = useState('');
   const { 
-    playMorse, stopAudio, isPlaying, activeElement, startManualTone, stopManualTone,
+    playMorse, isPlaying, activeElement, startManualTone, stopManualTone,
     volume, setVolume, frequency, setFrequency, wpm, setWpm 
   } = useMorseAudio();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);

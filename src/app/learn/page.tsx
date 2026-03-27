@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -28,7 +28,9 @@ export default function LearnPage() {
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-yellow-500/30 overflow-hidden relative">
       <MeshBackground />
-      <Header />
+      <Suspense fallback={null}>
+        <Header />
+      </Suspense>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-12">
         <motion.div 

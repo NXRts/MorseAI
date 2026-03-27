@@ -28,6 +28,20 @@ export const useMorseInput = (options?: UseMorseInputOptions) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, [isPressed, options]);
 
+  const decodeCharacter = useCallback(() => {
+    setCurrentMorse(prev => {
+      if (!prev) return prev;
+      const char = REVERSE_MORSE_MAP[prev] || '?';
+      setDecodedText(t => t + char);
+      return '';
+    });
+    
+    // Set timeout for word break (space)
+    timeoutRef.current = setTimeout(() => {
+        setDecodedText(t => t.endsWith(' ') ? t : t + ' ');
+    }, wordBreak - charBreak);
+  }, [wordBreak, charBreak]);
+
   const handleRelease = useCallback(() => {
     if (!isPressed || pressStartTime.current === null) return;
     
@@ -44,21 +58,7 @@ export const useMorseInput = (options?: UseMorseInputOptions) => {
     timeoutRef.current = setTimeout(() => {
       decodeCharacter();
     }, charBreak);
-  }, [isPressed]);
-
-  const decodeCharacter = useCallback(() => {
-    setCurrentMorse(prev => {
-      if (!prev) return prev;
-      const char = REVERSE_MORSE_MAP[prev] || '?';
-      setDecodedText(t => t + char);
-      return '';
-    });
-    
-    // Set timeout for word break (space)
-    timeoutRef.current = setTimeout(() => {
-        setDecodedText(t => t.endsWith(' ') ? t : t + ' ');
-    }, wordBreak - charBreak);
-  }, [REVERSE_MORSE_MAP, wordBreak, charBreak]);
+  }, [isPressed, options, dotThreshold, charBreak, decodeCharacter]);
 
   const clear = () => {
     setCurrentMorse('');
