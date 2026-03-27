@@ -8,17 +8,40 @@ import { useMorseAudio } from '../hooks/use-morse-audio';
 import { useMorseInput } from '../hooks/use-morse-input';
 import { VisualFlasher } from './VisualFlasher';
 
-const Dashboard = () => {
+interface DashboardProps {
+  activeMode: 'encode' | 'decode' | 'tapper' | 'learn';
+  onModeChange: (mode: 'encode' | 'decode' | 'tapper' | 'learn') => void;
+}
+
+const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
   const [inputText, setInputText] = useState('');
-  const [mode, setMode] = useState<'translate' | 'manual'>('translate');
+  const [morseInput, setMorseInput] = useState('');
   const { playMorse, stopAudio, isPlaying, activeElement } = useMorseAudio();
   const { currentMorse, decodedText, isPressed, clear: clearManual } = useMorseInput();
 
   const morseOutput = textToMorse(inputText);
+  const textOutput = morseToText(morseInput);
 
   const handlePlay = () => {
-    if (morseOutput) playMorse(morseOutput);
+    if (activeMode === 'encode' && morseOutput) playMorse(morseOutput);
+    if (activeMode === 'decode' && morseInput) playMorse(morseInput);
   };
+
+  const morseReference = [
+    { char: 'A', morse: '· —' }, { char: 'B', morse: '— · · ·' }, { char: 'C', morse: '— · — ·' },
+    { char: 'D', morse: '— · ·' }, { char: 'E', morse: '·' }, { char: 'F', morse: '· · — ·' },
+    { char: 'G', morse: '— — ·' }, { char: 'H', morse: '· · · ·' }, { char: 'I', morse: '· ·' },
+    { char: 'J', morse: '· — — —' }, { char: 'K', morse: '— · —' }, { char: 'L', morse: '· — · ·' },
+    { char: 'M', morse: '— —' }, { char: 'N', morse: '— ·' }, { char: 'O', morse: '— — —' },
+    { char: 'P', morse: '· — — ·' }, { char: 'Q', morse: '— — · —' }, { char: 'R', morse: '· — ·' },
+    { char: 'S', morse: '· · ·' }, { char: 'T', morse: '—' }, { char: 'U', morse: '· · —' },
+    { char: 'V', morse: '· · · —' }, { char: 'W', morse: '· — —' }, { char: 'X', morse: '— · · —' },
+    { char: 'Y', morse: '— · — —' }, { char: 'Z', morse: '— — · ·' },
+    { char: '1', morse: '· — — — —' }, { char: '2', morse: '· · — — —' }, { char: '3', morse: '· · · — —' },
+    { char: '4', morse: '· · · · —' }, { char: '5', morse: '· · · · ·' }, { char: '6', morse: '— · · · ·' },
+    { char: '7', morse: '— — · · ·' }, { char: '8', morse: '— — — · ·' }, { char: '9', morse: '— — — — ·' },
+    { char: '0', morse: '— — — — —' },
+  ];
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-12rem)] max-w-6xl mx-auto px-4 py-8 space-y-8">
@@ -26,22 +49,40 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 shadow-xl">
         <div className="flex space-x-2 bg-black/40 p-1.5 rounded-2xl border border-white/5">
           <button
-            onClick={() => setMode('translate')}
+            onClick={() => onModeChange('encode')}
             className={`px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-              mode === 'translate' ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]' : 'text-gray-400 hover:text-white'
+              activeMode === 'encode' ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Send className="w-4 h-4" />
-            Translator
+            Encode
           </button>
           <button
-            onClick={() => setMode('manual')}
+            onClick={() => onModeChange('decode')}
             className={`px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-              mode === 'manual' ? 'bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'text-gray-400 hover:text-white'
+              activeMode === 'decode' ? 'bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Zap className="w-4 h-4" />
+            Decode
+          </button>
+          <button
+            onClick={() => onModeChange('tapper')}
+            className={`px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+              activeMode === 'tapper' ? 'bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Keyboard className="w-4 h-4" />
-            Manual Tapper
+            Tapper
+          </button>
+          <button
+            onClick={() => onModeChange('learn')}
+            className={`px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+              activeMode === 'learn' ? 'bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.4)]' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Info className="w-4 h-4" />
+            Learn
           </button>
         </div>
 
@@ -62,7 +103,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* Input/Translation Panel */}
         <div className="space-y-6">
-          {mode === 'translate' ? (
+          {activeMode === 'encode' && (
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -71,7 +112,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-white flex items-center gap-3">
                     <span className="w-2 h-6 bg-cyan-500 rounded-full" />
-                    Input Message
+                    Encode Message
                 </h2>
                 <div className="text-xs text-cyan-400 font-mono tracking-widest opacity-60">ENG → MORSE</div>
               </div>
@@ -79,7 +120,7 @@ const Dashboard = () => {
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type your message here..."
+                placeholder="Type English message here..."
                 className="w-full h-40 bg-zinc-900/50 border border-white/5 rounded-2xl p-6 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-lg font-light resize-none"
               />
 
@@ -100,7 +141,49 @@ const Dashboard = () => {
                 </button>
               </div>
             </motion.div>
-          ) : (
+          )}
+
+          {activeMode === 'decode' && (
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="p-8 bg-black/40 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                    <span className="w-2 h-6 bg-emerald-500 rounded-full" />
+                    Decode Morse
+                </h2>
+                <div className="text-xs text-emerald-400 font-mono tracking-widest opacity-60">MORSE → ENG</div>
+              </div>
+              
+              <textarea
+                value={morseInput}
+                onChange={(e) => setMorseInput(e.target.value)}
+                placeholder="Paste Morse code here (use spaces between letters and / between words)..."
+                className="w-full h-40 bg-zinc-900/50 border border-white/5 rounded-2xl p-6 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-lg font-mono resize-none"
+              />
+
+              <div className="flex gap-4">
+                <button
+                  onClick={handlePlay}
+                  disabled={!morseInput || isPlaying}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-3"
+                >
+                   <Zap className={`w-5 h-5 ${isPlaying ? 'animate-bounce' : ''}`} />
+                   {isPlaying ? 'TRANSMITTING...' : 'SEND SIGNAL'}
+                </button>
+                <button
+                  onClick={() => setMorseInput('')}
+                  className="p-4 bg-white/5 hover:bg-red-500/20 rounded-2xl text-gray-400 hover:text-red-400 transition-all border border-white/5"
+                >
+                   <RotateCcw className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {activeMode === 'tapper' && (
             <motion.div 
                initial={{ opacity: 0, x: -20 }}
                animate={{ opacity: 1, x: 0 }}
@@ -109,9 +192,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-white flex items-center gap-3">
                     <span className="w-2 h-6 bg-purple-500 rounded-full" />
-                    Manual Decode
+                    Manual Tapper
                 </h2>
-                <div className="text-xs text-purple-400 font-mono tracking-widest opacity-60">MANUAL → TEXT</div>
+                <div className="text-xs text-purple-400 font-mono tracking-widest opacity-60">TAP → ENG</div>
               </div>
 
               <div className="h-40 bg-zinc-900/50 border border-white/5 rounded-2xl p-6 flex flex-col justify-between">
@@ -141,11 +224,38 @@ const Dashboard = () => {
             </motion.div>
           )}
 
+          {activeMode === 'learn' && (
+            <motion.div 
+               initial={{ opacity: 0, x: -20 }}
+               animate={{ opacity: 1, x: 0 }}
+               className="p-8 bg-black/40 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                    <span className="w-2 h-6 bg-yellow-500 rounded-full" />
+                    Morse Reference
+                </h2>
+                <div className="text-xs text-yellow-400 font-mono tracking-widest opacity-60">LEARN THE CODE</div>
+              </div>
+
+              <div className="h-[20rem] overflow-y-auto bg-zinc-900/50 border border-white/5 rounded-2xl p-6 custom-scrollbar">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                   {morseReference.map(({ char, morse }) => (
+                      <div key={char} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+                         <span className="text-lg font-bold text-white">{char}</span>
+                         <span className="text-sm font-mono text-yellow-500">{morse}</span>
+                      </div>
+                   ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Visualization of Translation */}
           <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
              <div className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.3em] mb-4">Live Translation Stream</div>
              <div className="text-2xl font-mono text-cyan-500 tracking-[0.5em] h-12 flex items-center overflow-x-auto whitespace-nowrap custom-scrollbar">
-                {morseOutput || "..."}
+                {activeMode === 'encode' ? (morseOutput || "...") : (activeMode === 'decode' ? (textOutput || "...") : (activeMode === 'tapper' ? (decodedText || "...") : "MORSE PROTOCOL READY"))}
              </div>
           </div>
         </div>

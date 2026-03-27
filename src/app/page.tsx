@@ -1,7 +1,12 @@
+'use client';
+
+import { useState } from "react";
 import Dashboard from "@/components/Dashboard";
-import { Zap, Shield, Laptop } from "lucide-react";
+import { Zap, Shield, Laptop, BookOpen } from "lucide-react";
 
 export default function Home() {
+  const [mode, setMode] = useState<'encode' | 'decode' | 'tapper' | 'learn'>('encode');
+
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-cyan-500/30 overflow-hidden relative">
       {/* Mesh Background */}
@@ -22,10 +27,25 @@ export default function Home() {
            </div>
         </div>
         
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
-           <a href="#" className="hover:text-cyan-400 transition-colors">DECODE</a>
-           <a href="#" className="hover:text-cyan-400 transition-colors">ENCODE</a>
-           <a href="#" className="hover:text-cyan-400 transition-colors">LEARN</a>
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+           <button 
+             onClick={() => setMode('decode')}
+             className={`transition-colors ${mode === 'decode' ? 'text-emerald-400' : 'text-gray-400 hover:text-emerald-400'}`}
+           >
+             DECODE
+           </button>
+           <button 
+             onClick={() => setMode('encode')}
+             className={`transition-colors ${mode === 'encode' ? 'text-cyan-400' : 'text-gray-400 hover:text-cyan-400'}`}
+           >
+             ENCODE
+           </button>
+           <button 
+             onClick={() => setMode('learn')}
+             className={`transition-colors ${mode === 'learn' ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}`}
+           >
+             LEARN
+           </button>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -34,7 +54,7 @@ export default function Home() {
         </div>
       </header>
 
-      <Dashboard />
+      <Dashboard activeMode={mode} onModeChange={setMode} />
 
       <footer className="relative z-10 border-t border-white/5 py-8 mt-12 bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
