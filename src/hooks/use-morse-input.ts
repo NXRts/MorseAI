@@ -4,6 +4,7 @@ import { REVERSE_MORSE_MAP } from '../utils/morse-logic';
 interface UseMorseInputOptions {
   onPress?: () => void;
   onRelease?: () => void;
+  disabled?: boolean;
 }
 
 export const useMorseInput = (options?: UseMorseInputOptions) => {
@@ -65,6 +66,8 @@ export const useMorseInput = (options?: UseMorseInputOptions) => {
   };
 
   useEffect(() => {
+    if (options?.disabled) return;
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat) {
         e.preventDefault();
@@ -84,7 +87,7 @@ export const useMorseInput = (options?: UseMorseInputOptions) => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [handlePress, handleRelease]);
+  }, [handlePress, handleRelease, options?.disabled]);
 
   return { currentMorse, decodedText, isPressed, clear };
 };

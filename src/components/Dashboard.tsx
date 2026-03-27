@@ -24,7 +24,8 @@ const Dashboard = ({ activeMode, onModeChange }: DashboardProps) => {
 
   const { currentMorse, decodedText, isPressed, clear: clearManual } = useMorseInput({
     onPress: startManualTone,
-    onRelease: stopManualTone
+    onRelease: stopManualTone,
+    disabled: isSettingsOpen
   });
 
   const morseOutput = textToMorse(inputText);
